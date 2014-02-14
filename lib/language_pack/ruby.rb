@@ -83,11 +83,15 @@ class LanguagePack::Ruby < LanguagePack::Base
   def compile
     instrument 'ruby.compile' do
       # check for new app at the beginning of the compile
+
       new_app?
       Dir.chdir(build_path)
       remove_vendor_bundle
       install_ruby
       install_jvm
+      config_vars = default_config_vars.each do |key, value|
+        ENV[key] ||= value
+      end
       setup_language_pack_environment
       setup_profiled
       allow_git do
@@ -221,13 +225,13 @@ private
   # sets up the environment variables for the build process
   def setup_language_pack_environment
     instrument 'ruby.setup_language_pack_environment' do
+      setup_ruby_install_env
 
       # TODO when buildpack-env-args rolls out, we can get rid of
       # ||= and the manual setting below
       config_vars = default_config_vars.each do |key, value|
         ENV[key] ||= value
       end
-      setup_ruby_install_env
 
 
       ENV["GEM_PATH"] = slug_vendor_base
